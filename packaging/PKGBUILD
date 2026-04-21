@@ -5,19 +5,30 @@ pkgdesc="Dynamic DNS-over-TLS updater for systemd-resolved"
 arch=('x86_64' 'aarch64')
 url="https://github.com/OliverMarcusson/dot-ddns"
 license=('MIT')
-depends=('systemd' 'networkmanager')
+depends=('systemd')
+optdepends=('networkmanager: NetworkManager backend support')
 makedepends=('cargo')
-source=()
-sha256sums=()
+install="$pkgname.install"
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('fd100dc32609314ed71e0ee029108ae136cb2a43ce34eb1997e6d8437bc9f92c')
 
 build() {
+  cd "$srcdir/$pkgname-$pkgver"
   cargo build --release --locked
 }
 
+check() {
+  cd "$srcdir/$pkgname-$pkgver"
+  cargo test --locked
+}
+
 package() {
-  install -Dm755 target/release/dot-ddns "$pkgdir/usr/bin/dot-ddns"
-  install -Dm644 packaging/dot-ddns.service "$pkgdir/usr/lib/systemd/system/dot-ddns.service"
-  install -Dm644 packaging/dot-ddns.tmpfiles "$pkgdir/usr/lib/tmpfiles.d/dot-ddns.conf"
-  install -Dm644 packaging/config.example.toml "$pkgdir/usr/share/doc/dot-ddns/config.example.toml"
-  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/dot-ddns/LICENSE"
+  cd "$srcdir/$pkgname-$pkgver"
+
+  install -Dm755 "target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
+  install -Dm644 "packaging/$pkgname.service" "$pkgdir/usr/lib/systemd/system/$pkgname.service"
+  install -Dm644 "packaging/$pkgname.tmpfiles" "$pkgdir/usr/lib/tmpfiles.d/$pkgname.conf"
+  install -Dm644 "packaging/config.example.toml" "$pkgdir/usr/share/doc/$pkgname/config.example.toml"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 "packaging/$pkgname.install" "$pkgdir/$pkgname.install"
 }
