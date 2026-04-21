@@ -22,35 +22,44 @@ pub async fn resolve_provider(config: &Config) -> Result<ResolvedSet> {
     let mut ipv6 = BTreeSet::new();
 
     match config.ip_family {
-        IpFamily::Ipv4 | IpFamily::Both => {
-            let lookup = resolver
-                .ipv4_lookup(config.domain.as_str())
-                .await
-                .map_err(|e| {
-                    DotDdnsError::Resolution(format!("A lookup failed for {}: {e}", config.domain))
-                })?;
-            for addr in lookup.iter() {
-                ipv4.insert(addr.to_string());
+        IpFamily::Ipv4 | IpFamily::Both => match resolver.ipv4_lookup(config.domain.as_str()).await
+        {
+            Ok(lookup) => {
+                for addr in lookup.iter() {
+                    ipv4.insert(addr.to_string());
+                }
             }
-        }
+            Err(err) if err.is_no_records_found() => {
+                tracing::debug!(domain = %config.domain, "no A records returned");
+            }
+            Err(err) => {
+                return Err(DotDdnsError::Resolution(format!(
+                    "A lookup failed for {}: {err}",
+                    config.domain
+                )));
+            }
+        },
         IpFamily::Ipv6 => {}
     }
 
     match config.ip_family {
-        IpFamily::Ipv6 | IpFamily::Both => {
-            let lookup = resolver
-                .ipv6_lookup(config.domain.as_str())
-                .await
-                .map_err(|e| {
-                    DotDdnsError::Resolution(format!(
-                        "AAAA lookup failed for {}: {e}",
-                        config.domain
-                    ))
-                })?;
-            for addr in lookup.iter() {
-                ipv6.insert(addr.to_string());
+        IpFamily::Ipv6 | IpFamily::Both => match resolver.ipv6_lookup(config.domain.as_str()).await
+        {
+            Ok(lookup) => {
+                for addr in lookup.iter() {
+                    ipv6.insert(addr.to_string());
+                }
             }
-        }
+            Err(err) if err.is_no_records_found() => {
+                tracing::debug!(domain = %config.domain, "no AAAA records returned");
+            }
+            Err(err) => {
+                return Err(DotDdnsError::Resolution(format!(
+                    "AAAA lookup failed for {}: {err}",
+                    config.domain
+                )));
+            }
+        },
         IpFamily::Ipv4 => {}
     }
 
