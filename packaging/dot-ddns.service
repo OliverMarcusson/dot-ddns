@@ -1,0 +1,16 @@
+[Unit]
+Description=Dynamic DNS-over-TLS updater for systemd-resolved
+Documentation=man:dot-ddns(1)
+After=network-online.target systemd-resolved.service
+Wants=network-online.target
+Requires=systemd-resolved.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/dot-ddns daemon --config /etc/dot-ddns/config.toml
+ExecStopPost=/usr/bin/dot-ddns disable --runtime-only --config /etc/dot-ddns/config.toml
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target

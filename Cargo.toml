@@ -1,0 +1,25 @@
+[package]
+name = "dot-ddns"
+version = "0.1.0"
+edition = "2021"
+description = "Dynamic DNS-over-TLS updater for systemd-resolved"
+license = "MIT"
+repository = "https://github.com/OliverMarcusson/dot-ddns"
+
+[dependencies]
+anyhow = "1"
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4", features = ["derive"] }
+hickory-proto = "0.25"
+hickory-resolver = "0.25"
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+
+[dev-dependencies]
+tempfile = "3"
